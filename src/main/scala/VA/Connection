@@ -1,0 +1,45 @@
+val c1=Module(new C1(w=w)).io
+
+val s2 = Array.fill(6)(Module(new Maxpool(w=w,width=28,height=28)).io)
+
+val c3=Array.fill(16)(Module(new C3(w=w)).io)
+
+val s4=Array.fill(16)(Module(new Maxpool(w=w,width=10,height=10)).io)
+
+val c5=Array.fill(120)(Module(new C5(w=w)).io)
+
+val f6 = Array.fill(84)(Module(new F6(w=w)).io)
+
+val o7=Array.fill(10)(Module(new RBF(w=w,n=84)).io)
+
+val result   = Wire(Vec(10, UInt(w.W)))
+
+for(i<- 0 until 6){
+  s2(i).mask:=c1.out(i)
+}
+
+for(i<- 0 until 16){
+  for(j<- 0 until 6){
+    c3(i).input(j):=s2.out(j)
+  }
+  s4(i).mask:=c3(i).out
+}
+
+for(i<- 0 until 120){
+  for(j<- 0 until 16){
+    c5(i).input(j):=s4.out(j)
+  }
+}
+
+for(i<- 0 until 84){
+  for(j<- 0 until 120){
+    f6(i).input(j):=c5(j).out
+  }
+}
+
+for(i <- 0 until 10){
+  for(j <- 0 until 84){
+    o7(i).vecx(j):=f6(j).out
+  }
+    result(i):=o7(i).out
+}
